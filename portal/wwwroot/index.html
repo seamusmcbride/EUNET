@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EUNET</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="side" aria-label="Main">
+      <div class="brand">
+        <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M4 16h24M16 2c5 5 5 23 0 28M16 2c-5 5-5 23 0 28" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        EUNET
+      </div>
+      <a href="#home">Dashboard</a>
+      <a href="#files">Documents</a>
+      <a href="#cameras">Cameras</a>
+      <a href="#photos">Photo editor</a>
+      <a href="#games">Games</a>
+      <a href="#admin" id="adminLink" hidden>Users &amp; audit</a>
+      <a href="#account">My account</a>
+      <div class="spacer"></div>
+      <div class="who"><span id="who">…</span><button id="logout" type="button">Sign out</button></div>
+    </nav>
+    <main id="view" aria-live="polite"></main>
+  </div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
