@@ -10,6 +10,7 @@ export default defineConfig({
         immersive: resolve(import.meta.dirname, 'immersive/index.html'),
         editorial: resolve(import.meta.dirname, 'editorial/index.html'),
         playful: resolve(import.meta.dirname, 'playful/index.html'),
+        blocks: resolve(import.meta.dirname, 'blocks/index.html'),
       },
     },
   },

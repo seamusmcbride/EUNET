@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Blocks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg: #0a0a12; --panel: #141422; --line: #262640; --fg: #ecebff; --muted: #8584a8; }
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; }
+    body { background: radial-gradient(circle at 50% 0%, #1d1b3a, var(--bg) 60%); color: var(--fg); font-family: "Space Grotesk", system-ui, sans-serif; display: grid; place-items: center; overflow: hidden; user-select: none; }
+    .game { display: grid; grid-template-columns: 130px auto 130px; gap: 18px; align-items: start; }
+    .side { display: flex; flex-direction: column; gap: 14px; }
+    .box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+    .box h3 { font-size: 11px; letter-spacing: .2em; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
+    .stat { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    canvas { display: block; }
+    #board { border-radius: 14px; border: 1px solid var(--line); background: #07070d; box-shadow: 0 30px 80px #0008, 0 0 0 6px #ffffff06; }
+    .overlay { position: fixed; inset: 0; display: grid; place-items: center; background: #0a0a12cc; backdrop-filter: blur(6px); text-align: center; }
+    .overlay.hidden { display: none; }
+    .overlay h1 { font-size: 64px; letter-spacing: -.03em; background: linear-gradient(90deg, #7c5cff, #00e0c6, #ffd23f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .overlay p { color: var(--muted); margin: 12px 0 24px; line-height: 1.6; }
+    .overlay button, .touch button { font: 700 16px "Space Grotesk"; background: var(--fg); color: var(--bg); border: 0; border-radius: 99px; padding: 14px 30px; cursor: pointer; }
+    .keys { font-size: 13px; color: var(--muted); line-height: 1.8; }
+    kbd { background: var(--line); border-radius: 4px; padding: 1px 6px; color: var(--fg); font-family: inherit; }
+    .touch { display: none; position: fixed; bottom: 16px; left: 0; right: 0; justify-content: center; gap: 10px; }
+    .touch button { padding: 16px 0; width: 64px; background: #ffffff18; color: var(--fg); }
+    @media (max-width: 700px), (pointer: coarse) {
+      .game { grid-template-columns: 1fr; } .side { flex-direction: row; justify-content: center; } .keys { display: none; }
+      .touch { display: flex; }
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <div class="side">
+      <div class="box"><h3>HOLD</h3><canvas id="hold" width="104" height="70"></canvas></div>
+      <div class="box"><h3>SCORE</h3><div class="stat" id="score">0</div></div>
+      <div class="box"><h3>LINES</h3><div class="stat" id="lines">0</div></div>
+      <div class="box"><h3>LEVEL</h3><div class="stat" id="level">1</div></div>
+    </div>
+    <canvas id="board"></canvas>
+    <div class="side">
+      <div class="box"><h3>NEXT</h3><canvas id="next" width="104" height="230"></canvas></div>
+      <div class="box"><h3>BEST</h3><div class="stat" id="best">0</div></div>
+      <div class="box keys"><kbd>←</kbd> <kbd>→</kbd> move<br /><kbd>↓</kbd> soft drop<br /><kbd>Space</kbd> hard drop<br /><kbd>↑</kbd> <kbd>X</kbd> rotate<br /><kbd>Z</kbd> rotate back<br /><kbd>C</kbd> hold · <kbd>P</kbd> pause</div>
+    </div>
+  </div>
+  <div class="touch">
+    <button data-k="left">◀</button><button data-k="rotate">⟳</button><button data-k="right">▶</button><button data-k="soft">▼</button><button data-k="hard">⤓</button><button data-k="hold">H</button>
+  </div>
+  <div class="overlay" id="overlay">
+    <div><h1>BLOCKS</h1><p id="msg">Clear lines. Don't hit the top.</p><button id="start">Play</button></div>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
