@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.StaticFiles;
 using Portal;
 
@@ -45,6 +46,15 @@ builder.Services.AddRateLimiter(o =>
 var app = builder.Build();
 var started = DateTimeOffset.UtcNow;
 
+// Behind a cloud load balancer or reverse proxy, take the client address and HTTPS from its headers.
+// Only enable this when the app can't be reached except through the proxy, or the headers could be forged.
+if (app.Configuration.GetValue<bool>("TrustForwardedHeaders"))
+{
+    var fwd = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto, ForwardLimit = 1 };
+    fwd.KnownIPNetworks.Clear();
+    fwd.KnownProxies.Clear();
+    app.UseForwardedHeaders(fwd);
+}
 if (!app.Environment.IsDevelopment()) app.UseHsts();
 
 app.Use(async (ctx, next) =>

@@ -1,0 +1,11 @@
+**/node_modules
+**/bin
+**/obj
+portal/out
+portal/demo-dist
+portal/data
+portal/wwwroot/lib
+portal/wwwroot/showcase
+showcase/dist
+site
+.git

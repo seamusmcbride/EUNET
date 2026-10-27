@@ -1,0 +1,6 @@
+# Google Cloud Build: builds portal/Dockerfile from the repository root and pushes it.
+# gcloud builds submit --config portal/cloudbuild.yaml --substitutions=_IMAGE=REGION-docker.pkg.dev/PROJECT/eunet/portal .
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '-f', 'portal/Dockerfile', '-t', '${_IMAGE}', '.']
+images: ['${_IMAGE}']
