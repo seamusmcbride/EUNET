@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.StaticFiles;
 using Portal;
@@ -18,6 +19,10 @@ builder.Services.AddSingleton(sp => new UserStore(dataDir, sp.GetRequiredService
 builder.Services.AddSingleton(new FileStore(Path.Combine(dataDir, "files")));
 builder.Services.AddSingleton(new AuditLog(Path.Combine(dataDir, "audit.log")));
 builder.Services.AddSingleton<CertAuth>();
+// Keep the keys that encrypt sign-in cookies with the data, so restarts and upgrades don't sign everyone out
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(Directory.CreateDirectory(Path.Combine(dataDir, "keys")))
+    .SetApplicationName("EUNET");
 // When the portal serves HTTPS itself and certificate sign-in is on, ask browsers for a client certificate.
 // It's optional at the TLS level so password sign-in keeps working; the sign-in endpoint does the real checks.
 if (!string.IsNullOrWhiteSpace(builder.Configuration["ClientCertificates:TrustedCaFile"]))

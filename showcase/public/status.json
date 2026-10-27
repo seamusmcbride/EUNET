@@ -1,8 +1,33 @@
 {
-  "generated": "2026-10-27T11:04:48.382Z",
+  "generated": "2026-10-27T11:51:08.130Z",
   "branch": "claude/laughing-knuth-u79qpb",
   "repo": "seamusmcbride/eunet",
   "commits": [
+    {
+      "hash": "1159ce5",
+      "date": "2026-10-27T11:47:12+00:00",
+      "subject": "Add certificate tracker and certificate sign-in to the portal"
+    },
+    {
+      "hash": "8aa5880",
+      "date": "2026-10-27T11:24:42+00:00",
+      "subject": "Add a private AI assistant backed by local Ollama, and a docker compose setup for laptops"
+    },
+    {
+      "hash": "d0b69ed",
+      "date": "2026-10-27T11:19:51+00:00",
+      "subject": "Add container image and deployment guide for a VM, Google Cloud Run and Azure Container Apps"
+    },
+    {
+      "hash": "57a544d",
+      "date": "2026-10-27T11:14:06+00:00",
+      "subject": "Rebuild portal UI on Tabler and ApexCharts, add activity charts and a demo build"
+    },
+    {
+      "hash": "171add6",
+      "date": "2026-10-27T11:05:19+00:00",
+      "subject": "Add EUNET portal: ASP.NET Core sign-in, documents, cameras, photo editor, dashboard and user admin"
+    },
     {
       "hash": "1a77440",
       "date": "2026-10-27T10:58:14+00:00",
@@ -54,13 +79,13 @@
     "cpu": "4 × Intel(R) Xeon(R) Processor @ 2.80GHz",
     "memoryGb": 15.7,
     "memoryFreeGb": 14.8,
-    "diskUsedGb": 9.9,
+    "diskUsedGb": 14.7,
     "diskSizeGb": 252,
-    "uptimeMin": 42,
+    "uptimeMin": 12,
     "load": [
-      0.41,
-      1.35,
-      2.55
+      0.98,
+      0.64,
+      0.29
     ]
   },
   "tools": {
