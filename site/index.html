@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EUNET — Test Site</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <canvas id="gl"></canvas>
+  <div class="cursor"></div>
+
+  <nav class="nav">
+    <span class="logo">EUNET</span>
+    <div class="links"><a href="#work">Work</a><a href="#stats">Numbers</a><a href="#contact">Contact</a></div>
+  </nav>
+
+  <header class="hero">
+    <p class="eyebrow">Cloud · Network · Europe</p>
+    <h1 class="title"><span>Connecting</span><span>the continent.</span></h1>
+    <p class="lead">A test build with live WebGL, scroll-driven animation and smooth scrolling.</p>
+    <a class="btn" href="#work">Explore <span>→</span></a>
+  </header>
+
+  <section class="marquee"><div class="track">
+    <span>FAST</span><span>SECURE</span><span>EVERYWHERE</span><span>FAST</span><span>SECURE</span><span>EVERYWHERE</span>
+  </div></section>
+
+  <section id="work" class="gallery">
+    <h2 class="section-title">Selected work</h2>
+    <div class="grid">
+      <figure class="card"><img src="/img/1015.jpg" alt="River valley" /><figcaption><b>Nordic Link</b><i>Infrastructure</i></figcaption></figure>
+      <figure class="card"><img src="/img/1018.jpg" alt="Mountains" /><figcaption><b>Alpine Edge</b><i>Edge compute</i></figcaption></figure>
+      <figure class="card"><img src="/img/1036.jpg" alt="Snowy peaks" /><figcaption><b>Glacier</b><i>Cold storage</i></figcaption></figure>
+      <figure class="card"><img src="/img/1043.jpg" alt="Coastline" /><figcaption><b>Atlantic</b><i>Subsea cable</i></figcaption></figure>
+      <figure class="card"><img src="/img/1050.jpg" alt="Ocean" /><figcaption><b>Meridian</b><i>Routing</i></figcaption></figure>
+      <figure class="card"><img src="/img/1069.jpg" alt="Jellyfish" /><figcaption><b>Bloom</b><i>Mesh network</i></figcaption></figure>
+    </div>
+  </section>
+
+  <section id="stats" class="stats">
+    <div class="stat"><b data-to="27">0</b><span>Countries</span></div>
+    <div class="stat"><b data-to="99.99">0</b><span>% Uptime</span></div>
+    <div class="stat"><b data-to="4">0</b><span>ms Median latency</span></div>
+  </section>
+
+  <section id="contact" class="cta">
+    <h2>Let's build something <em>loud</em>.</h2>
+    <a class="btn" href="mailto:hello@example.com">Get in touch <span>→</span></a>
+  </section>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>

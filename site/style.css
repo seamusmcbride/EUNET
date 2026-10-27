@@ -1,0 +1,46 @@
+:root { --bg: #07070c; --fg: #f2f0ea; --muted: #8a8a99; --accent: #7c5cff; --accent2: #00e0c6; }
+* { box-sizing: border-box; margin: 0; }
+html.lenis { height: auto; }
+body { background: var(--bg); color: var(--fg); font-family: Inter, system-ui, sans-serif; overflow-x: hidden; }
+#gl { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; }
+.nav, header, section { position: relative; z-index: 1; }
+
+.cursor { position: fixed; width: 18px; height: 18px; border-radius: 50%; background: var(--fg); mix-blend-mode: difference; pointer-events: none; z-index: 10; transform: translate(-50%, -50%); }
+
+.nav { display: flex; justify-content: space-between; align-items: center; padding: 24px 5vw; position: fixed; width: 100%; mix-blend-mode: difference; }
+.logo { font: 700 20px "Space Grotesk"; letter-spacing: .2em; }
+.links a { color: var(--fg); text-decoration: none; margin-left: 28px; font-size: 14px; }
+
+.hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 0 5vw; }
+.eyebrow { color: var(--accent2); text-transform: uppercase; letter-spacing: .3em; font-size: 12px; margin-bottom: 24px; }
+.title { font: 700 clamp(48px, 10vw, 150px)/0.92 "Space Grotesk"; letter-spacing: -.04em; }
+.title span { display: block; overflow: hidden; }
+.title span:last-child { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lead { max-width: 460px; color: var(--muted); margin: 32px 0; font-size: 18px; line-height: 1.5; }
+.btn { display: inline-flex; gap: 10px; align-self: flex-start; padding: 16px 28px; border: 1px solid #ffffff33; border-radius: 999px; color: var(--fg); text-decoration: none; backdrop-filter: blur(10px); background: #ffffff0d; transition: background .3s, color .3s; }
+.btn:hover { background: var(--fg); color: var(--bg); }
+
+.marquee { padding: 40px 0; border-block: 1px solid #ffffff1a; overflow: hidden; background: #07070ccc; }
+.track { display: flex; gap: 60px; white-space: nowrap; font: 700 clamp(40px, 7vw, 96px) "Space Grotesk"; width: max-content; }
+.track span:nth-child(even) { color: transparent; -webkit-text-stroke: 1px var(--fg); }
+
+.gallery { padding: 140px 5vw; background: linear-gradient(#07070ccc, var(--bg) 30%); }
+.section-title { font: 600 clamp(32px, 5vw, 64px) "Space Grotesk"; margin-bottom: 60px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px; }
+.card { position: relative; aspect-ratio: 4/5; border-radius: 20px; overflow: hidden; transform-style: preserve-3d; will-change: transform; }
+.card img { width: 100%; height: 120%; object-fit: cover; transition: transform .8s cubic-bezier(.2,.8,.2,1), filter .8s; filter: saturate(.7); }
+.card:hover img { transform: scale(1.08); filter: saturate(1.2); }
+.card figcaption { position: absolute; inset: auto 0 0 0; padding: 24px; display: flex; justify-content: space-between; align-items: end; background: linear-gradient(transparent, #000c); }
+.card b { font: 600 22px "Space Grotesk"; }
+.card i { font-style: normal; color: var(--muted); font-size: 13px; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 40px; padding: 120px 5vw; background: var(--bg); }
+.stat b { display: block; font: 700 clamp(64px, 9vw, 128px) "Space Grotesk"; background: linear-gradient(180deg, var(--fg), #ffffff33); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat span { color: var(--muted); text-transform: uppercase; letter-spacing: .2em; font-size: 12px; }
+
+.cta { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; text-align: center; padding: 0 5vw; }
+.cta h2 { font: 700 clamp(40px, 8vw, 120px)/1 "Space Grotesk"; letter-spacing: -.03em; }
+.cta em { font-style: italic; color: var(--accent2); }
+.cta .btn { align-self: center; }
+
+@media (max-width: 600px) { .links { display: none; } .grid { grid-template-columns: 1fr; } .cursor { display: none; } }
