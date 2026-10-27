@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orbit</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;800&family=Inter:wght@400&display=swap" rel="stylesheet" />
+  <style>
+    :root { --fg: #eef0ff; --muted: #9aa0c8; --accent: #8fb3ff; }
+    * { box-sizing: border-box; margin: 0; }
+    body { background: #02030a; color: var(--fg); font-family: Inter, system-ui, sans-serif; }
+    canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+    .hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; padding: 28px 5vw; display: flex; justify-content: space-between; align-items: flex-start; font: 500 13px Syne; letter-spacing: .25em; text-transform: uppercase; }
+    .progress { position: fixed; left: 5vw; right: 5vw; bottom: 28px; height: 1px; background: #ffffff22; z-index: 2; }
+    .progress i { display: block; height: 100%; width: 100%; background: var(--fg); transform-origin: left; transform: scaleX(0); }
+    main { position: relative; z-index: 1; }
+    .chapter { height: 120vh; display: flex; align-items: center; padding: 0 5vw; }
+    .chapter.right { justify-content: flex-end; text-align: right; }
+    .chapter > div { max-width: 520px; }
+    .num { font: 500 13px Syne; color: var(--accent); letter-spacing: .3em; }
+    h1, h2 { font: 800 clamp(48px, 8vw, 128px)/.9 Syne; letter-spacing: -.03em; margin: 16px 0; }
+    h2 { font-size: clamp(36px, 4.6vw, 72px); }
+    p { color: var(--muted); font-size: 18px; line-height: 1.55; }
+    .chapter > div > * { opacity: 0; transform: translateY(40px); }
+  </style>
+</head>
+<body>
+  <canvas id="gl"></canvas>
+  <div class="hud"><span>Orbit</span><span id="coord">00.000° N</span></div>
+  <div class="progress"><i></i></div>
+  <main>
+    <section class="chapter"><div><span class="num">00 — Arrival</span><h1>A world<br />in orbit.</h1><p>Scroll to descend. Everything you see is generated live in your browser: no video, no pre-rendered images.</p></div></section>
+    <section class="chapter right"><div><span class="num">01 — The rings</span><h2>Ten thousand crystals.</h2><p>One draw call. Each shard is an instance with its own orbit, spin and colour.</p></div></section>
+    <section class="chapter"><div><span class="num">02 — Atmosphere</span><h2>Light that bends.</h2><p>A Fresnel shader wraps the planet in a glowing atmosphere, and bloom spills the light into the dark.</p></div></section>
+    <section class="chapter right"><div><span class="num">03 — Surface</span><h2>Touch down.</h2><p>The camera path is a spline. Your scroll position is the only input.</p></div></section>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Three Sites</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg: #0b0b0d; --fg: #f4f2ec; --muted: #8b8b93; }
+    * { box-sizing: border-box; margin: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: "Inter Tight", system-ui, sans-serif; min-height: 100vh; padding: 6vh 5vw; }
+    h1 { font-size: clamp(40px, 7vw, 96px); font-weight: 800; letter-spacing: -.04em; line-height: .95; }
+    p.lead { color: var(--muted); max-width: 560px; margin: 20px 0 56px; font-size: 18px; line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    a.card { display: flex; flex-direction: column; justify-content: space-between; min-height: 360px; padding: 28px; border-radius: 24px; color: inherit; text-decoration: none; position: relative; overflow: hidden; transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+    a.card:hover { transform: translateY(-8px); }
+    a.card span { font-size: 13px; letter-spacing: .2em; text-transform: uppercase; opacity: .7; }
+    a.card h2 { font-size: 40px; letter-spacing: -.03em; line-height: 1; }
+    a.card p { margin-top: 12px; opacity: .8; line-height: 1.45; }
+    .c1 { background: radial-gradient(circle at 70% 20%, #3b2bff, #0d0a2e 70%); }
+    .c2 { background: #efe9dc; color: #111; }
+    .c3 { background: #ff5b2e; color: #111; }
+  </style>
+</head>
+<body>
+  <h1>Three kinds of<br />top-end website.</h1>
+  <p class="lead">Each one follows a style that wins design awards right now: an immersive 3D world, an editorial magazine with moving type, and a playful physics toy.</p>
+  <div class="grid">
+    <a class="card c1" href="/immersive/"><span>01 · Immersive 3D</span><div><h2>Orbit</h2><p>Scroll flies a camera through a living 3D world.</p></div></a>
+    <a class="card c2" href="/editorial/"><span>02 · Editorial motion</span><div><h2>Atelier</h2><p>Magazine layout, kinetic type, horizontal gallery.</p></div></a>
+    <a class="card c3" href="/playful/"><span>03 · Playful physics</span><div><h2>Gravity</h2><p>Letters and shapes you can grab, throw and stack.</p></div></a>
+  </div>
+</body>
+</html>
