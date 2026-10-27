@@ -2,6 +2,8 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  // Relative URLs so the build works from any folder, not just the site root
+  base: './',
   build: {
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
