@@ -55,7 +55,7 @@ app.Use(async (ctx, next) =>
     h["Permissions-Policy"] = "camera=(self), microphone=(), geolocation=()";
     h["Content-Security-Policy"] =
         "default-src 'self'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; " +
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; " +
         "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
     // State-changing API calls must carry this header; browsers can't add it cross-site without CORS
     if (ctx.Request.Path.StartsWithSegments("/api") && !HttpMethods.IsGet(ctx.Request.Method)
@@ -211,6 +211,21 @@ api.MapGet("/status", (FileStore store, UserStore users) =>
 }).RequireAuthorization();
 
 api.MapGet("/audit", (AuditLog audit, int? take) => Results.Ok(audit.Tail(take ?? 50))).RequireAuthorization("admin");
+
+// Daily counts for the last two weeks, for the dashboard charts
+api.MapGet("/activity", (AuditLog audit) =>
+{
+    var days = Enumerable.Range(0, 14).Select(i => DateTime.UtcNow.Date.AddDays(i - 13)).ToList();
+    var events = audit.Tail(500).Select(e => (Day: e.GetProperty("at").GetDateTimeOffset().UtcDateTime.Date, Action: e.GetProperty("action").GetString())).ToList();
+    int[] Count(params string[] actions) => [.. days.Select(d => events.Count(e => e.Day == d && actions.Contains(e.Action)))];
+    return Results.Ok(new
+    {
+        days = days.Select(d => d.ToString("yyyy-MM-dd")),
+        signIns = Count("login"),
+        failedSignIns = Count("login-failed"),
+        uploads = Count("upload"),
+    });
+}).RequireAuthorization();
 
 var admin = api.MapGroup("/users").RequireAuthorization("admin");
 admin.MapGet("/", (UserStore users) => users.All().Select(u => new { u.Name, u.DisplayName, u.Role, u.Created }));

@@ -1,27 +1,35 @@
 const form = document.getElementById('form');
 const error = document.getElementById('error');
 const submit = document.getElementById('submit');
+const showError = (msg) => { error.textContent = msg; error.classList.toggle('d-none', !msg); };
+
+document.getElementById('reveal').onclick = (e) => {
+  e.preventDefault();
+  const pw = document.getElementById('password');
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+};
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  error.textContent = '';
+  showError('');
   const name = form.name.value.trim(), password = form.password.value;
-  if (!name || !password) { error.textContent = 'Enter your user name and password.'; return; }
+  if (!name || !password) { showError('Enter your user name and password.'); return; }
   submit.disabled = true;
-  submit.textContent = 'Signing in…';
+  submit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in…';
   try {
+    if (window.EUNET_DEMO) { location.href = 'index.html'; return; }
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-EUNET': '1' },
       body: JSON.stringify({ name, password, remember: document.getElementById('remember').checked }),
     });
-    if (res.ok) { location.href = '/'; return; }
-    if (res.status === 429) error.textContent = 'Too many attempts. Wait a minute and try again.';
-    else error.textContent = (await res.json().catch(() => ({}))).error || 'Sign-in failed.';
+    if (res.ok) { location.href = 'index.html'; return; }
+    if (res.status === 429) showError('Too many attempts. Wait a minute and try again.');
+    else showError((await res.json().catch(() => ({}))).error || 'Sign-in failed.');
   } catch {
-    error.textContent = "Can't reach the server. Check your connection.";
+    showError("Can't reach the server. Check your connection.");
   }
   submit.disabled = false;
-  submit.textContent = 'Sign in';
+  submit.innerHTML = '<i class="ti ti-login-2 me-2"></i>Sign in';
   form.password.select();
 });

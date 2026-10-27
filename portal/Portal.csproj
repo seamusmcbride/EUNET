@@ -6,4 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Front-end tooling stays out of the published app -->
+    <Content Remove="package.json;package-lock.json" />
+    <None Remove="node_modules/**;scripts/**" />
+  </ItemGroup>
+
 </Project>

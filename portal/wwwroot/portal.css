@@ -1,0 +1,24 @@
+/* Small additions on top of Tabler */
+:root, [data-bs-theme] { --tblr-font-sans-serif: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --tblr-primary: #1a7f5a; --tblr-primary-rgb: 26, 127, 90; }
+[data-bs-theme="dark"] { --tblr-primary: #3fbf8a; --tblr-primary-rgb: 63, 191, 138; }
+
+.login-art { position: relative; background: #0e2a20 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 120 104'%3E%3Cg fill='none' stroke='%233fbf8a' stroke-opacity='.18'%3E%3Cpath d='M60 2 112 32v40L60 102 8 72V32Z'/%3E%3Cpath d='M60 2v100M8 32l104 40M112 32 8 72'/%3E%3C/g%3E%3C/svg%3E"); color: #e8fff4; }
+.login-art::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 70% 30%, #1a7f5a88, transparent 60%), linear-gradient(180deg, transparent 40%, #071a13); }
+.login-art-copy { position: absolute; left: 8%; right: 8%; bottom: 10%; max-width: 640px; }
+
+.dropzone-box { border: 2px dashed var(--tblr-border-color); border-radius: var(--tblr-border-radius-lg); padding: 1.25rem; text-align: center; color: var(--tblr-secondary); transition: border-color .15s, background .15s; }
+.dropzone-box.over { border-color: var(--tblr-primary); background: rgba(var(--tblr-primary-rgb), .06); color: var(--tblr-primary); }
+.file-icon { width: 2.25rem; height: 2.25rem; border-radius: var(--tblr-border-radius); display: inline-grid; place-items: center; font-size: 1.25rem; }
+
+.editor-stage { min-height: 420px; display: grid; place-items: center; padding: 1rem; background: repeating-conic-gradient(var(--tblr-bg-surface-secondary) 0 25%, var(--tblr-bg-surface) 0 50%) 0 0 / 22px 22px; }
+.editor-stage canvas { max-width: 100%; max-height: 68vh; box-shadow: 0 .5rem 2rem rgba(0, 0, 0, .25); border-radius: 4px; }
+.preset { width: 100%; padding: .35rem; flex-direction: column; align-items: stretch; }
+.preset .swatch { width: 100%; height: 46px; background-color: var(--tblr-bg-surface-secondary); border-radius: 6px; background-size: cover; background-position: center; margin-bottom: .3rem; }
+
+.cam-feed { background: #000; }
+.cam-feed img, .cam-feed video { object-fit: cover; }
+.cam-badge { position: absolute; top: .75rem; left: .75rem; z-index: 2; }
+.cam-badge .status-dot-animated { margin-right: .35rem; }
+
+.game-art { height: 120px; border-radius: var(--tblr-border-radius) var(--tblr-border-radius) 0 0; display: grid; place-items: center; color: #fff; font-size: 2.5rem; }
+.demo-banner { font-size: .8125rem; }

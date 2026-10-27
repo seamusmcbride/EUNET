@@ -14,6 +14,9 @@ try {
     npm run build
 } finally { Pop-Location }
 
+Push-Location $PSScriptRoot
+try { npm ci; npm run vendor } finally { Pop-Location }
+
 if (Test-Path $target) { Remove-Item $target -Recurse -Force }
 Copy-Item (Join-Path $showcase 'dist') $target -Recurse
 

@@ -1,0 +1,18 @@
+{
+  "name": "portal",
+  "version": "1.0.0",
+  "description": "Sign-in, documents library, cameras, photo editor, status dashboard, user admin and the EUNET games, in one ASP.NET Core (.NET 10) app.",
+  "scripts": {
+    "vendor": "node scripts/vendor.mjs",
+    "demo": "node scripts/vendor.mjs && node scripts/demo.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tabler/core": "^1.7.1",
+    "@tabler/icons-webfont": "^3.49.0",
+    "apexcharts": "^4.7.0"
+  },
+  "private": true
+}

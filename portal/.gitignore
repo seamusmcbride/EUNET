@@ -3,3 +3,6 @@ obj/
 out/
 data/
 wwwroot/showcase/
+node_modules/
+wwwroot/lib/
+demo-dist/
