@@ -22,3 +22,7 @@
 
 .game-art { height: 120px; border-radius: var(--tblr-border-radius) var(--tblr-border-radius) 0 0; display: grid; place-items: center; color: #fff; font-size: 2.5rem; }
 .demo-banner { font-size: .8125rem; }
+
+.chat-bubble { padding: .65rem .9rem; border-radius: 14px 14px 14px 4px; background: var(--tblr-bg-surface-secondary); }
+.chat-bubble-me { border-radius: 14px 14px 4px 14px; background: rgba(var(--tblr-primary-rgb), .12); }
+.chat-bubble-body p:last-child, .chat-bubble-body ul:last-child { margin-bottom: 0; }

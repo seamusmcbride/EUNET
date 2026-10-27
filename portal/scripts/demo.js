@@ -75,6 +75,7 @@
       return null;
     }
     if (route === '/me/password') { if ((opts.json.new ?? '').length < 10) err('Use at least 10 characters.'); return null; }
+    if (route === '/ai/models') return { available: true, models: ['qwen2.5:3b', 'llama3.2:3b', 'gemma3:4b'], selected: 'qwen2.5:3b' };
     if (route === '/cameras') return [
       { name: 'Front entrance', location: 'Ground floor', type: 'snapshot', url: 'showcase/img/1043.jpg' },
       { name: 'Car park', location: 'North side', type: 'snapshot', url: 'showcase/img/1050.jpg' },
@@ -104,5 +105,13 @@
     err('Not available in the demo.');
   }
   demoApi.url = (path) => files.get(path)?.blob ?? '#';
+  // The real assistant streams from a model on the server; the demo types out a canned answer
+  demoApi.chat = async (messages, onText) => {
+    const q = messages.at(-2)?.content ?? '';
+    const answer = /\bca\b|certificate|csr/i.test(q)
+      ? 'A **root CA** is the top of the trust chain. Its key signs only a few certificates and is usually kept offline.\n\nAn **issuing CA** is signed by the root and does the day-to-day work:\n- issues certificates to servers and users\n- publishes revocation lists\n- can be replaced without rebuilding trust\n\n(Demo answer. On your server this comes from the local model.)'
+      : `This is the demo, so I can't run a model here. On your server the assistant answers "${q.slice(0, 80)}" using the local model you've installed with Ollama, and the conversation never leaves the machine.`;
+    for (const word of answer.split(/(?<=\s)/)) { onText(word); await new Promise((r) => setTimeout(r, 25)); }
+  };
   window.EUNET_DEMO = demoApi;
 })();

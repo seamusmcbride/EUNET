@@ -1,6 +1,8 @@
 # EUNET Portal
 
-Sign-in, documents library, cameras, photo editor, status dashboard, user admin and the EUNET games, in one ASP.NET Core (.NET 10) app.
+Sign-in, documents library, a private AI assistant, cameras, photo editor, status dashboard, user admin and the EUNET games, in one ASP.NET Core (.NET 10) app.
+
+To run it on a laptop with the local AI, or to put it on a server, see **DEPLOY.md**.
 
 ## Run it locally
 
@@ -68,6 +70,17 @@ Everything is under `DataDir` (default `./data`). Back up this folder.
 | `files/` | The documents library. |
 | `audit.log` | One JSON line per sign-in, upload, delete and admin change. |
 | `cameras.json` | Camera list (see below). |
+
+## AI assistant
+
+The **Assistant** page talks to [Ollama](https://ollama.com) through the portal's server, so the browser never contacts an AI service directly and conversations stay on your machine. Settings in `appsettings.json` or environment variables:
+
+| Setting | Default |
+|---|---|
+| `Ollama:Url` (`Ollama__Url`) | `http://localhost:11434` |
+| `Ollama:Model` (`Ollama__Model`) | `qwen2.5:3b` |
+
+Any model you've pulled with `ollama pull` appears in the model picker. The audit log records that someone used the assistant and which model they used, but not what was asked.
 
 ## Cameras
 

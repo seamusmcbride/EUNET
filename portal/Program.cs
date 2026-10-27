@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Security.Claims;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
@@ -16,6 +17,11 @@ const long MaxUpload = 100 * 1024 * 1024;
 builder.Services.AddSingleton(sp => new UserStore(dataDir, sp.GetRequiredService<ILogger<UserStore>>()));
 builder.Services.AddSingleton(new FileStore(Path.Combine(dataDir, "files")));
 builder.Services.AddSingleton(new AuditLog(Path.Combine(dataDir, "audit.log")));
+builder.Services.AddHttpClient("ollama", c =>
+{
+    c.BaseAddress = new Uri(builder.Configuration["Ollama:Url"] ?? "http://localhost:11434");
+    c.Timeout = TimeSpan.FromMinutes(5); // Small machines can take a while on long answers
+});
 builder.WebHost.ConfigureKestrel(k => k.Limits.MaxRequestBodySize = MaxUpload);
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -260,6 +266,57 @@ admin.MapDelete("/{name}", (string name, ClaimsPrincipal me, UserStore users, Au
     return Results.NoContent();
 });
 
+// ---------- Local AI assistant (Ollama on the same machine or network; nothing goes to the internet) ----------
+var ai = api.MapGroup("/ai").RequireAuthorization();
+
+ai.MapGet("/models", async (IHttpClientFactory http, IConfiguration cfg) =>
+{
+    try
+    {
+        using var doc = JsonDocument.Parse(await http.CreateClient("ollama").GetStringAsync("/api/tags"));
+        var models = doc.RootElement.GetProperty("models").EnumerateArray().Select(m => m.GetProperty("name").GetString()).ToList();
+        var preferred = cfg["Ollama:Model"];
+        return Results.Ok(new { available = true, models, selected = models.Contains(preferred) ? preferred : models.FirstOrDefault() });
+    }
+    catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
+    {
+        return Results.Ok(new { available = false, models = Array.Empty<string>(), selected = (string?)null });
+    }
+});
+
+ai.MapPost("/chat", async (ChatRequest req, IHttpClientFactory http, HttpContext ctx, AuditLog audit) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Model) || req.Messages is not { Count: > 0 and <= 40 } || req.Messages.Any(m => m.Content.Length > 8000 || m.Role is not ("user" or "assistant")))
+        return Results.Json(new { error = "That conversation is too long or malformed. Start a new chat." }, statusCode: 400);
+
+    var messages = new List<object> { new { role = "system", content = "You are the assistant inside EUNET, a private company portal. Answer clearly and briefly. Use plain text with short paragraphs or simple lists." } };
+    messages.AddRange(req.Messages.Select(m => new { role = m.Role, content = m.Content }));
+    var body = JsonContent.Create(new { model = req.Model, messages, stream = true });
+    using var upstream = new HttpRequestMessage(HttpMethod.Post, "/api/chat") { Content = body };
+    HttpResponseMessage res;
+    try { res = await http.CreateClient("ollama").SendAsync(upstream, HttpCompletionOption.ResponseHeadersRead, ctx.RequestAborted); }
+    catch (HttpRequestException) { return Results.Json(new { error = "The local AI isn't running. Start Ollama and try again." }, statusCode: 503); }
+    if (!res.IsSuccessStatusCode) return Results.Json(new { error = $"The local AI refused the request ({(int)res.StatusCode})." }, statusCode: 502);
+
+    audit.Write(ctx, "ai-chat", req.Model);
+    // Stream the model's words straight to the browser as they arrive
+    ctx.Response.ContentType = "text/plain; charset=utf-8";
+    ctx.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpResponseBodyFeature>()?.DisableBuffering();
+    using var reader = new StreamReader(await res.Content.ReadAsStreamAsync(ctx.RequestAborted));
+    while (await reader.ReadLineAsync(ctx.RequestAborted) is { } line)
+    {
+        if (line.Length == 0) continue;
+        using var chunk = JsonDocument.Parse(line);
+        if (chunk.RootElement.TryGetProperty("message", out var msg) && msg.TryGetProperty("content", out var text))
+        {
+            await ctx.Response.WriteAsync(text.GetString() ?? "", ctx.RequestAborted);
+            await ctx.Response.Body.FlushAsync(ctx.RequestAborted);
+        }
+    }
+    res.Dispose();
+    return Results.Empty;
+});
+
 app.Run();
 
 static object Me(System.Security.Principal.IIdentity id)
@@ -272,6 +329,8 @@ record LoginRequest(string? Name, string? Password, bool Remember);
 record PasswordChange(string? Current, string? New);
 record NewFolder(string? Path, string Name);
 record NewUser(string Name, string? DisplayName, string? Role, string? Password);
+record ChatMessage(string Role, string Content);
+record ChatRequest(string? Model, List<ChatMessage>? Messages);
 
 /// <summary>Append-only JSON-lines audit trail of security-relevant actions.</summary>
 class AuditLog(string path)

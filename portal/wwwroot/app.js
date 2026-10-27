@@ -34,7 +34,7 @@ const fail = (e) => `<div class="alert alert-danger"><i class="ti ti-alert-trian
 
 let me;
 const charts = [];
-const views = { home, files, cameras, photos, games, admin, account };
+const views = { home, files, assistant, cameras, photos, games, admin, account };
 
 async function route() {
   const name = location.hash.slice(1) || 'home';
@@ -138,6 +138,7 @@ const ACTION = {
   login: ['login-2', 'green', 'signed in'], 'login-failed': ['shield-x', 'orange', 'failed to sign in'], logout: ['logout', 'secondary', 'signed out'],
   upload: ['upload', 'blue', 'uploaded'], delete: ['trash', 'red', 'deleted'], 'folder-created': ['folder-plus', 'blue', 'created folder'],
   'user-added': ['user-plus', 'purple', 'added user'], 'user-removed': ['user-minus', 'red', 'removed user'], 'password-changed': ['key', 'teal', 'changed their password'],
+  'ai-chat': ['sparkles', 'azure', 'asked the assistant'],
 };
 function activityRow(r) {
   const [icon, color, verb] = ACTION[r.action] ?? ['point', 'secondary', r.action];
@@ -239,6 +240,100 @@ function confirmDelete(btn) {
   btn.innerHTML = '<i class="ti ti-check"></i>';
   btn.title = 'Click again to delete';
   setTimeout(() => { if (btn.isConnected) { delete btn.dataset.armed; btn.classList.replace('btn-danger', 'btn-ghost-danger'); btn.innerHTML = '<i class="ti ti-trash"></i>'; } }, 3000);
+}
+
+// ---------- Assistant (local AI through the server) ----------
+const chat = { messages: [], model: null, busy: false };
+async function streamChat(onText) {
+  if (window.EUNET_DEMO) return window.EUNET_DEMO.chat(chat.messages, onText);
+  const res = await fetch('/api/ai/chat', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-EUNET': '1' },
+    body: JSON.stringify({ model: chat.model, messages: chat.messages }),
+  });
+  if (res.status === 401) { location.href = 'login.html'; return; }
+  if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || `Request failed (${res.status})`);
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    onText(dec.decode(value, { stream: true }));
+  }
+}
+// Plain text with paragraphs, bullet lists and **bold**, all escaped first
+const formatReply = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').split(/\n{2,}/).map((p) => {
+  const lines = p.split('\n');
+  return lines.every((l) => /^\s*([-*•]|\d+\.)\s/.test(l))
+    ? `<ul class="mb-2 ps-3">${lines.map((l) => `<li>${l.replace(/^\s*([-*•]|\d+\.)\s/, '')}</li>`).join('')}</ul>`
+    : `<p class="mb-2">${lines.join('<br>')}</p>`;
+}).join('');
+const SUGGESTIONS = ['Explain the difference between a root CA and an issuing CA', 'Write a short policy for strong passwords', 'Summarise what a CSR contains', 'Draft a polite email asking for an invoice'];
+
+async function assistant() {
+  const info = await api('/ai/models');
+  if (!chat.model || !info.models.includes(chat.model)) chat.model = info.selected;
+  page({
+    pretitle: info.available ? `Runs on this server · ${info.models.length} model${info.models.length === 1 ? '' : 's'}` : 'Local AI',
+    title: 'Assistant',
+    actions: info.available ? `<select class="form-select w-auto" id="model" aria-label="Model">${info.models.map((m) => `<option ${m === chat.model ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
+      <button class="btn" id="newChat"><i class="ti ti-plus me-2"></i>New chat</button>` : '',
+    body: !info.available ? `<div class="card"><div class="empty">
+        <div class="empty-icon"><i class="ti ti-plug-connected-x fs-1"></i></div><p class="empty-title">The local AI isn't running</p>
+        <p class="empty-subtitle text-secondary">Install <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> on this server, then run <code>ollama pull qwen2.5:3b</code>. The portal finds it at the address set in <code>Ollama:Url</code>.</p></div></div>`
+      : `<div class="card" style="height:calc(100vh - 12rem);min-height:420px">
+        <div class="card-body scrollable" id="chatLog" style="flex:1;overflow-y:auto"></div>
+        <div class="card-footer">
+          <form id="chatForm" class="d-flex gap-2 align-items-end">
+            <textarea id="prompt" class="form-control" rows="1" placeholder="Ask anything. Your question stays on this server." style="resize:none;max-height:160px" aria-label="Message"></textarea>
+            <button class="btn btn-primary btn-icon" id="send" aria-label="Send"><i class="ti ti-send"></i></button>
+          </form>
+          <div class="small text-secondary mt-2"><i class="ti ti-lock me-1"></i>Answers come from a model on your own server. Nothing is sent to an outside AI service.</div>
+        </div>
+      </div>`,
+  });
+  if (!info.available) return;
+  const log = document.getElementById('chatLog'), prompt = document.getElementById('prompt'), form = document.getElementById('chatForm');
+  const bubble = (role, html) => `<div class="chat-item mb-3"><div class="row g-2 align-items-end ${role === 'user' ? 'justify-content-end' : ''}">
+      ${role === 'user' ? '' : '<div class="col-auto"><span class="avatar avatar-sm bg-primary-lt"><i class="ti ti-sparkles"></i></span></div>'}
+      <div class="col-auto" style="max-width:min(75%, 720px)"><div class="chat-bubble ${role === 'user' ? 'chat-bubble-me' : ''}"><div class="chat-bubble-body">${html}</div></div></div>
+      ${role === 'user' ? `<div class="col-auto"><span class="avatar avatar-sm">${esc(initials(me.displayName))}</span></div>` : ''}</div></div>`;
+  const render = () => {
+    log.innerHTML = chat.messages.length ? chat.messages.map((m) => bubble(m.role, m.role === 'user' ? `<p class="mb-0">${esc(m.content).replace(/\n/g, '<br>')}</p>` : formatReply(m.content) || '<span class="spinner-border spinner-border-sm"></span>')).join('')
+      : `<div class="empty"><div class="empty-icon"><i class="ti ti-sparkles fs-1 text-primary"></i></div><p class="empty-title">What can I help with?</p>
+          <div class="d-flex flex-wrap gap-2 justify-content-center mt-2">${SUGGESTIONS.map((s) => `<button type="button" class="btn btn-sm" data-suggest="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>`;
+    log.scrollTop = log.scrollHeight;
+    log.querySelectorAll('[data-suggest]').forEach((b) => b.onclick = () => { prompt.value = b.dataset.suggest; form.requestSubmit(); });
+  };
+  render();
+  document.getElementById('model').onchange = (e) => { chat.model = e.target.value; };
+  document.getElementById('newChat').onclick = () => { if (!chat.busy) { chat.messages = []; render(); prompt.focus(); } };
+  prompt.oninput = () => { prompt.style.height = 'auto'; prompt.style.height = prompt.scrollHeight + 'px'; };
+  prompt.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } };
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const text = prompt.value.trim();
+    if (!text || chat.busy) return;
+    chat.busy = true; document.getElementById('send').disabled = true;
+    prompt.value = ''; prompt.style.height = 'auto';
+    chat.messages.push({ role: 'user', content: text });
+    const reply = { role: 'assistant', content: '' };
+    chat.messages.push(reply);
+    render();
+    try {
+      await streamChat((t) => {
+        reply.content += t;
+        const last = log.querySelectorAll('.chat-bubble-body');
+        last[last.length - 1].innerHTML = formatReply(reply.content);
+        log.scrollTop = log.scrollHeight;
+      });
+      if (!reply.content) reply.content = '(No answer came back. Try again or pick another model.)';
+    } catch (err) {
+      reply.content = err.message;
+    }
+    render();
+    chat.busy = false;
+    if (document.getElementById('send')) { document.getElementById('send').disabled = false; prompt.focus(); }
+  };
+  prompt.focus();
 }
 
 // ---------- Cameras ----------
