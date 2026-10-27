@@ -1,8 +1,13 @@
 {
-  "generated": "2026-10-27T10:34:43.278Z",
+  "generated": "2026-10-27T10:51:31.905Z",
   "branch": "claude/laughing-knuth-u79qpb",
   "repo": "seamusmcbride/eunet",
   "commits": [
+    {
+      "hash": "141702a",
+      "date": "2026-10-27T10:35:07+00:00",
+      "subject": "Add EUNET Control Room project dashboard, generated from git and machine status at build time"
+    },
     {
       "hash": "05af2ad",
       "date": "2026-10-27T10:26:46+00:00",
@@ -41,11 +46,11 @@
     "memoryFreeGb": 15,
     "diskUsedGb": 9.9,
     "diskSizeGb": 252,
-    "uptimeMin": 12,
+    "uptimeMin": 29,
     "load": [
-      0.27,
-      0.33,
-      0.28
+      4.83,
+      5.4,
+      3.45
     ]
   },
   "tools": {

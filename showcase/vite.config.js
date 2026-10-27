@@ -15,6 +15,7 @@ export default defineConfig({
         blocks: resolve(import.meta.dirname, 'blocks/index.html'),
         bunker: resolve(import.meta.dirname, 'bunker/index.html'),
         dashboard: resolve(import.meta.dirname, 'dashboard/index.html'),
+        outpost: resolve(import.meta.dirname, 'outpost/index.html'),
       },
     },
   },

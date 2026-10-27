@@ -5,7 +5,7 @@ const PROJECTS = [
   { name: 'Gravity', desc: 'Physics playground with draggable letters and shapes', status: 'live', href: '../playful/index.html' },
   { name: 'Blocks', desc: 'Falling-block puzzle game', status: 'live', href: '../blocks/index.html' },
   { name: 'Bunker', desc: 'Retro first-person shooter', status: 'live', href: '../bunker/index.html' },
-  { name: 'Outpost', desc: 'High-end 3D game with real-time shadows and effects', status: 'building', href: '../outpost/index.html' },
+  { name: 'Outpost', desc: 'High-end 3D game with real-time shadows and effects', status: 'live', href: '../outpost/index.html' },
   { name: 'Portal', desc: 'Sign-in, documents library, cameras, photo editor (for the rented server)', status: 'building' },
   { name: 'VR world', desc: 'WebXR world built from iPhone scans', status: 'planned' },
 ];
