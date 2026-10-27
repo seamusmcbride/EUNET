@@ -71,6 +71,62 @@ Everything is under `DataDir` (default `./data`). Back up this folder.
 | `audit.log` | One JSON line per sign-in, upload, delete and admin change. |
 | `cameras.json` | Camera list (see below). |
 
+## Certificates
+
+The **Certificates** page lists every certificate found in the documents library: `.crt`, `.cer`, `.pem` (including whole chains), `.der` and `.p7b`. Each certificate is listed once, with every file it appears in. It flags:
+
+- expired or not-yet-valid certificates
+- certificates expiring within 30 days
+- RSA keys under 2048 bits, ECDSA under 256, and SHA-1 or MD5 signatures
+- server certificates with no subject alternative names, or a lifetime over 398 days
+
+## Certificate sign-in
+
+Users can sign in with a client certificate from your own CA instead of a password. The certificate must:
+- chain to a CA in `TrustedCaFile`
+- carry the TLS client authentication purpose (`clientAuth`)
+- have a common name (CN) matching a portal user name
+
+Password sign-in keeps working alongside it.
+
+| Setting | Meaning |
+|---|---|
+| `ClientCertificates:TrustedCaFile` | PEM file with your root CA and any intermediates that issue user certificates. Setting it turns the feature on. |
+| `ClientCertificates:CheckRevocation` | `true` to check CRLs and OCSP online (off by default). |
+| `ClientCertificates:ForwardedHeader` | Header your reverse proxy puts the client certificate in, e.g. `X-Client-Cert`. Only read when `TrustForwardedHeaders` is on. |
+
+**Portal serving HTTPS itself (Kestrel):**
+
+```bash
+ASPNETCORE_URLS=https://0.0.0.0:443 \
+Kestrel__Certificates__Default__Path=/etc/eunet/server.pfx Kestrel__Certificates__Default__Password=... \
+ClientCertificates__TrustedCaFile=/etc/eunet/user-ca-chain.pem dotnet Portal.dll
+```
+
+**Behind nginx:** nginx checks the TLS handshake and passes the certificate on. `proxy_set_header` replaces any header a client tries to send itself.
+
+```nginx
+ssl_client_certificate /etc/nginx/eunet-user-ca.pem;
+ssl_verify_client optional;
+location / {
+    proxy_pass http://127.0.0.1:5000;
+    proxy_set_header X-Client-Cert $ssl_client_escaped_cert;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+Then run the portal with `TrustForwardedHeaders=true` and `ClientCertificates__ForwardedHeader=X-Client-Cert`. Never expose the portal's own port when you do this, or anyone could send a forged header.
+
+Issuing a user certificate with OpenSSL (CN = the user name):
+
+```bash
+openssl req -newkey rsa:2048 -nodes -keyout jane.key -out jane.csr -subj "/CN=jane.doe"
+openssl x509 -req -in jane.csr -CA issuing.crt -CAkey issuing.key -days 365 -out jane.crt \
+  -extfile <(printf "basicConstraints=CA:false\nkeyUsage=critical,digitalSignature\nextendedKeyUsage=clientAuth")
+openssl pkcs12 -export -in jane.crt -inkey jane.key -out jane.p12   # import this on the user's device
+```
+
 ## AI assistant
 
 The **Assistant** page talks to [Ollama](https://ollama.com) through the portal's server, so the browser never contacts an AI service directly and conversations stay on your machine. Settings in `appsettings.json` or environment variables:
@@ -110,4 +166,6 @@ Camera URLs must be HTTPS, because the page's security policy blocks plain HTTP.
 - Only images and PDFs open in the browser. Other files download, so an uploaded HTML file can't run as part of the site.
 - Admin-only user management and audit log.
 
-Not yet done: two-factor sign-in, per-folder permissions, and virus scanning of uploads.
+- Optional certificate sign-in: chain validation against your own CA, the client-auth purpose required, and CN mapped to a user.
+
+Not yet done: two-factor sign-in for password users, per-folder permissions, and virus scanning of uploads.

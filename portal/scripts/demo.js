@@ -75,6 +75,22 @@
       return null;
     }
     if (route === '/me/password') { if ((opts.json.new ?? '').length < 10) err('Use at least 10 characters.'); return null; }
+    if (route === '/certs') {
+      const c = (cn, days, life, alg, size, sig, isCa, self, names, warnings, status, path) => ({
+        path, index: 0, subject: `CN=${cn}, O=EUNET, C=IE`, commonName: cn, issuer: self ? `CN=${cn}, O=EUNET, C=IE` : isCa ? 'CN=EUNET Root CA 2026, O=EUNET, C=IE' : 'CN=EUNET Issuing CA 1, O=EUNET, C=IE',
+        notBefore: iso(now + (days - life) * day), notAfter: iso(now + days * day), daysLeft: days, keyAlgorithm: alg, keySize: size, signatureAlgorithm: sig,
+        isCa, selfSigned: self, names, sha256: [...Array(32)].map(() => Math.floor(seeded() * 256).toString(16).padStart(2, '0')).join('').toUpperCase(),
+        serial: [...Array(16)].map(() => Math.floor(seeded() * 16).toString(16)).join('').toUpperCase(), status, warnings, foundIn: [path] });
+      return [
+        c('old-intranet.eunet.local', -298, 366, 'RSA', 2048, 'sha256RSA', false, false, ['old-intranet.eunet.local'], ['Expired'], 'invalid', 'Certificates/old-intranet.crt'),
+        c('vpn.eunet.local', 11, 90, 'ECDSA', 256, 'sha256ECDSA', false, false, ['vpn.eunet.local'], ['Expires in 11 days'], 'warning', 'Certificates/vpn.crt'),
+        c('portal.eunet.local', 74, 90, 'RSA', 2048, 'sha256RSA', false, false, ['portal.eunet.local', 'eunet.example.com'], [], 'ok', 'Certificates/portal.crt'),
+        c('web01.eunet.local', 199, 200, 'RSA', 2048, 'sha256RSA', false, false, ['web01.eunet.local'], [], 'ok', 'Certificates/web01.der'),
+        c('legacy-app.eunet.local', 299, 300, 'RSA', 1024, 'sha1RSA', false, false, ['legacy-app.eunet.local'], ['Weak key: RSA 1024', 'Weak signature: sha1RSA'], 'warning', 'Certificates/legacy-app.crt'),
+        c('EUNET Issuing CA 1', 1824, 1825, 'RSA', 3072, 'sha256RSA', true, false, [], [], 'ok', 'Certificates/issuing-chain.pem'),
+        c('EUNET Root CA 2026', 3649, 3650, 'RSA', 4096, 'sha256RSA', true, true, [], [], 'ok', 'Certificates/root-ca.crt'),
+      ];
+    }
     if (route === '/ai/models') return { available: true, models: ['qwen2.5:3b', 'llama3.2:3b', 'gemma3:4b'], selected: 'qwen2.5:3b' };
     if (route === '/cameras') return [
       { name: 'Front entrance', location: 'Ground floor', type: 'snapshot', url: 'showcase/img/1043.jpg' },

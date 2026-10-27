@@ -34,7 +34,7 @@ const fail = (e) => `<div class="alert alert-danger"><i class="ti ti-alert-trian
 
 let me;
 const charts = [];
-const views = { home, files, assistant, cameras, photos, games, admin, account };
+const views = { home, files, certs, assistant, cameras, photos, games, admin, account };
 
 async function route() {
   const name = location.hash.slice(1) || 'home';
@@ -240,6 +240,61 @@ function confirmDelete(btn) {
   btn.innerHTML = '<i class="ti ti-check"></i>';
   btn.title = 'Click again to delete';
   setTimeout(() => { if (btn.isConnected) { delete btn.dataset.armed; btn.classList.replace('btn-danger', 'btn-ghost-danger'); btn.innerHTML = '<i class="ti ti-trash"></i>'; } }, 3000);
+}
+
+// ---------- Certificates ----------
+const CERT_STATUS = { invalid: ['red', 'Expired'], warning: ['orange', 'Needs attention'], notice: ['yellow', 'Check'], ok: ['green', 'Healthy'] };
+let certFilter = 'all';
+async function certs() {
+  const list = await api('/certs');
+  const count = (s) => list.filter((c) => c.status === s).length;
+  const soon = list.filter((c) => c.daysLeft >= 0 && c.daysLeft <= 30).length;
+  const weak = list.filter((c) => c.warnings.some((w) => w.startsWith('Weak'))).length;
+  const tile = (key, icon, color, value, label) => `
+    <div class="col-sm-6 col-lg-3"><a href="#certs" class="card card-sm card-link text-reset text-decoration-none ${certFilter === key ? 'border-primary' : ''}" data-filter="${key}"><div class="card-body"><div class="row align-items-center">
+      <div class="col-auto"><span class="bg-${color} text-white avatar"><i class="ti ti-${icon} fs-2"></i></span></div>
+      <div class="col"><div class="fw-semibold fs-3">${value}</div><div class="text-secondary">${label}</div></div></div></div></a></div>`;
+  const shown = list.filter((c) => certFilter === 'all' || (certFilter === 'expired' ? c.status === 'invalid' : certFilter === 'soon' ? c.daysLeft >= 0 && c.daysLeft <= 30 : c.warnings.some((w) => w.startsWith('Weak'))));
+  const life = (c) => {
+    const total = (new Date(c.notAfter) - new Date(c.notBefore)) / 864e5, used = Math.min(1, Math.max(0, (Date.now() - new Date(c.notBefore)) / 864e5 / total));
+    const color = c.daysLeft < 0 ? 'bg-red' : c.daysLeft <= 30 ? 'bg-orange' : used > 0.8 ? 'bg-yellow' : 'bg-green';
+    return `<div class="progress progress-sm" style="width:110px" title="${Math.round(used * 100)}% of its lifetime used"><div class="progress-bar ${color}" style="width:${Math.round(used * 100)}%"></div></div>`;
+  };
+  page({
+    pretitle: `${list.length} certificate${list.length === 1 ? '' : 's'} found in Documents`, title: 'Certificates',
+    actions: `<a class="btn" href="#files"><i class="ti ti-upload me-2"></i>Add certificates</a>`,
+    body: `<div class="row row-deck row-cards mb-3">
+        ${tile('all', 'certificate', 'primary', list.length, 'All certificates')}
+        ${tile('expired', 'certificate-off', 'red', count('invalid'), 'Expired or not yet valid')}
+        ${tile('soon', 'clock-exclamation', 'orange', soon, 'Expiring within 30 days')}
+        ${tile('weak', 'lock-open', 'yellow', weak, 'Weak key or signature')}
+      </div>
+      ${list.length ? `<div class="card"><div class="table-responsive"><table class="table table-vcenter card-table">
+        <thead><tr><th>Certificate</th><th>Status</th><th>Expires</th><th>Lifetime</th><th>Key</th><th class="w-1"></th></tr></thead>
+        <tbody>${shown.map((c, i) => { const [color, label] = CERT_STATUS[c.status]; return `
+          <tr>
+            <td><div class="d-flex align-items-center gap-2"><span class="avatar avatar-sm bg-${c.isCa ? 'purple' : 'blue'}-lt" title="${c.isCa ? 'Certificate authority' : 'End-entity certificate'}"><i class="ti ti-${c.isCa ? 'building-bank' : 'world'}"></i></span>
+              <div><div class="fw-medium">${esc(c.commonName)}</div><div class="small text-secondary">${c.isCa ? (c.selfSigned ? 'Root CA' : 'Intermediate CA') : esc(c.names.slice(0, 2).join(', ') || 'No alternative names')}</div></div></div></td>
+            <td><span class="badge bg-${color}-lt">${label}</span>${c.warnings.length ? `<div class="small text-secondary mt-1">${c.warnings.map(esc).join('<br>')}</div>` : ''}</td>
+            <td class="text-nowrap">${new Date(c.notAfter).toLocaleDateString([], { dateStyle: 'medium' })}<div class="small ${c.daysLeft < 0 ? 'text-danger' : c.daysLeft <= 30 ? 'text-warning' : 'text-secondary'}">${c.daysLeft < 0 ? `${-c.daysLeft} days ago` : `in ${c.daysLeft} days`}</div></td>
+            <td>${life(c)}</td>
+            <td class="text-nowrap">${esc(c.keyAlgorithm)} ${c.keySize || ''}<div class="small text-secondary">${esc(c.signatureAlgorithm)}</div></td>
+            <td><button class="btn btn-sm btn-ghost-secondary" data-detail="${i}">Details</button></td>
+          </tr>
+          <tr hidden id="detail-${i}"><td colspan="6" class="bg-surface-secondary"><div class="datagrid py-2">
+            ${[['Subject', c.subject], ['Issuer', c.issuer], ['Valid from', when(c.notBefore)], ['Valid until', when(c.notAfter)], ['Serial number', c.serial], ['SHA-256 fingerprint', c.sha256.match(/.{2}/g).join(':')],
+              ['Alternative names', c.names.join(', ') || '—'], ['Found in', c.foundIn.join(', ')]].map(([k, v]) => `<div class="datagrid-item"><div class="datagrid-title">${k}</div><div class="datagrid-content font-monospace small text-break">${esc(v)}</div></div>`).join('')}
+          </div></td></tr>`; }).join('') || '<tr><td colspan="6" class="text-secondary text-center py-4">No certificates match this filter.</td></tr>'}</tbody>
+      </table></div></div>`
+      : `<div class="card"><div class="empty"><div class="empty-icon"><i class="ti ti-certificate fs-1"></i></div><p class="empty-title">No certificates yet</p>
+          <p class="empty-subtitle text-secondary">Upload .crt, .cer, .pem, .der or .p7b files anywhere in Documents and they appear here with their expiry dates and strength checks.</p>
+          <div class="empty-action"><a href="#files" class="btn btn-primary"><i class="ti ti-upload me-2"></i>Go to Documents</a></div></div></div>`}`,
+  });
+  view.querySelectorAll('[data-filter]').forEach((a) => a.onclick = (e) => { e.preventDefault(); certFilter = certFilter === a.dataset.filter ? 'all' : a.dataset.filter; certs(); });
+  view.querySelectorAll('[data-detail]').forEach((b) => b.onclick = () => {
+    const row = document.getElementById('detail-' + b.dataset.detail);
+    row.hidden = !row.hidden; b.textContent = row.hidden ? 'Details' : 'Hide';
+  });
 }
 
 // ---------- Assistant (local AI through the server) ----------

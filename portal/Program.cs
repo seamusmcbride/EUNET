@@ -17,6 +17,15 @@ const long MaxUpload = 100 * 1024 * 1024;
 builder.Services.AddSingleton(sp => new UserStore(dataDir, sp.GetRequiredService<ILogger<UserStore>>()));
 builder.Services.AddSingleton(new FileStore(Path.Combine(dataDir, "files")));
 builder.Services.AddSingleton(new AuditLog(Path.Combine(dataDir, "audit.log")));
+builder.Services.AddSingleton<CertAuth>();
+// When the portal serves HTTPS itself and certificate sign-in is on, ask browsers for a client certificate.
+// It's optional at the TLS level so password sign-in keeps working; the sign-in endpoint does the real checks.
+if (!string.IsNullOrWhiteSpace(builder.Configuration["ClientCertificates:TrustedCaFile"]))
+    builder.WebHost.ConfigureKestrel(k => k.ConfigureHttpsDefaults(h =>
+    {
+        h.ClientCertificateMode = Microsoft.AspNetCore.Server.Kestrel.Https.ClientCertificateMode.AllowCertificate;
+        h.AllowAnyClientCertificate();
+    }));
 builder.Services.AddHttpClient("ollama", c =>
 {
     c.BaseAddress = new Uri(builder.Configuration["Ollama:Url"] ?? "http://localhost:11434");
@@ -115,6 +124,28 @@ api.MapPost("/login", async (LoginRequest req, UserStore users, AuditLog audit, 
     return Results.Ok(Me(identity));
 }).RequireRateLimiting("login");
 
+api.MapGet("/login/options", (CertAuth certs) => Results.Ok(new { certificate = certs.Enabled }));
+
+api.MapPost("/login/certificate", async (HttpContext ctx, CertAuth certs, UserStore users, AuditLog audit) =>
+{
+    if (!certs.Enabled) return Results.NotFound();
+    var cert = await certs.GetCertificateAsync(ctx);
+    if (cert is null) return Results.Json(new { error = "Your browser didn't send a certificate. Install your EUNET certificate and try again." }, statusCode: 401);
+    var (name, error) = certs.Validate(cert);
+    var user = name is null ? null : users.All().FirstOrDefault(u => string.Equals(u.Name, name, StringComparison.OrdinalIgnoreCase));
+    if (user is null)
+    {
+        audit.Write(ctx, "login-failed", $"certificate {cert.Subject}: {error ?? "no matching user"}", user: name);
+        return Results.Json(new { error = error ?? $"No portal account matches the certificate for “{name}”." }, statusCode: 401);
+    }
+    var identity = new ClaimsIdentity(
+        [new(ClaimTypes.Name, user.Name), new("display", user.DisplayName), new(ClaimTypes.Role, user.Role), new("amr", "certificate")],
+        CookieAuthenticationDefaults.AuthenticationScheme);
+    await ctx.SignInAsync(new ClaimsPrincipal(identity));
+    audit.Write(ctx, "login", $"certificate {cert.GetCertHashString(System.Security.Cryptography.HashAlgorithmName.SHA256)[..16]}…", user: user.Name);
+    return Results.Ok(Me(identity));
+}).RequireRateLimiting("login");
+
 api.MapPost("/logout", async (HttpContext ctx, AuditLog audit) =>
 {
     audit.Write(ctx, "logout");
@@ -197,6 +228,9 @@ docs.MapDelete("/", (string path, FileStore store, AuditLog audit, HttpContext c
     audit.Write(ctx, "delete", path);
     return Results.NoContent();
 });
+
+// ---------- Certificate tracker: every certificate found in the library ----------
+api.MapGet("/certs", (FileStore store) => Results.Ok(CertScanner.Scan(store))).RequireAuthorization();
 
 // ---------- Cameras (configured in data/cameras.json) ----------
 api.MapGet("/cameras", () =>
