@@ -13,6 +13,7 @@ export default defineConfig({
         editorial: resolve(import.meta.dirname, 'editorial/index.html'),
         playful: resolve(import.meta.dirname, 'playful/index.html'),
         blocks: resolve(import.meta.dirname, 'blocks/index.html'),
+        bunker: resolve(import.meta.dirname, 'bunker/index.html'),
       },
     },
   },
