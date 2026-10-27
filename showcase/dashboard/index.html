@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EUNET Control Room</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* Layout: a status strip on top, then a two-column grid of projects and history that stacks on phones */
+    :root {
+      --bg: #f3f4f1; --surface: #ffffff; --line: #dcdfd8; --fg: #1b1f1a; --muted: #636b60;
+      --accent: #2f6f4f; --ok: #2f8a4f; --warn: #b7791f; --todo: #6b7280;
+      --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+      --bg: #0f1311; --surface: #171c19; --line: #29312c; --fg: #e6ebe6; --muted: #8e998f;
+      --accent: #6fd39b; --ok: #5ccf86; --warn: #e3b04b; --todo: #8b93a0; color-scheme: dark; } }
+    :root[data-theme="dark"] {
+      --bg: #0f1311; --surface: #171c19; --line: #29312c; --fg: #e6ebe6; --muted: #8e998f;
+      --accent: #6fd39b; --ok: #5ccf86; --warn: #e3b04b; --todo: #8b93a0; color-scheme: dark; }
+    * { box-sizing: border-box; margin: 0; }
+    body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--sans); padding: 28px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); }
+    .wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 24px; }
+    header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; }
+    h1 { font-size: 28px; font-weight: 600; letter-spacing: -.01em; }
+    .sub { color: var(--muted); font-size: 14px; }
+    .mono { font-family: var(--mono); font-size: 13px; }
+    a { color: var(--accent); }
+    .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .cell { background: var(--surface); padding: 14px 16px; min-width: 0; }
+    .cell small { display: block; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .cell b { font: 500 22px var(--mono); font-variant-numeric: tabular-nums; }
+    .meter { height: 4px; background: var(--line); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .meter i { display: block; height: 100%; background: var(--accent); }
+    .grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start; }
+    section h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 12px; color: var(--muted); font-weight: 500; }
+    tr:last-child td { border-bottom: 0; }
+    td .desc { color: var(--muted); font-size: 13px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 2px 9px; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; }
+    .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .live { color: var(--ok); } .building { color: var(--warn); } .planned { color: var(--todo); }
+    .table-box { overflow-x: auto; }
+    ol.log { list-style: none; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+    ol.log li { display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+    ol.log li:last-child { border-bottom: 0; }
+    ol.log time { display: block; color: var(--muted); font-size: 12px; }
+    dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+    dt { color: var(--muted); font-size: 13px; } dd { font-family: var(--mono); font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
+    .note { color: var(--muted); font-size: 13px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div><h1>EUNET Control Room</h1><p class="sub">Everything built so far, where it lives, and what's next.</p></div>
+      <p class="mono sub" id="stamp">Snapshot loading…</p>
+    </header>
+
+    <div class="strip" id="strip"></div>
+
+    <div class="grid">
+      <section>
+        <h2>Projects</h2>
+        <div class="table-box"><table>
+          <thead><tr><th>Name</th><th>Status</th><th>Open</th></tr></thead>
+          <tbody id="projects"></tbody>
+        </table></div>
+      </section>
+      <section>
+        <h2>Recent changes</h2>
+        <ol class="log" id="log"></ol>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section>
+        <h2>Cloud machine at build time</h2>
+        <dl id="machine"></dl>
+        <p class="note" style="margin-top:8px">The cloud machine sleeps when idle, so these figures are a snapshot from the last build, not live.</p>
+      </section>
+      <section>
+        <h2>Installed tools</h2>
+        <dl id="tools"></dl>
+      </section>
+    </div>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{
+  "generated": "2026-10-27T10:34:43.278Z",
+  "branch": "claude/laughing-knuth-u79qpb",
+  "repo": "seamusmcbride/eunet",
+  "commits": [
+    {
+      "hash": "05af2ad",
+      "date": "2026-10-27T10:26:46+00:00",
+      "subject": "Add Bunker, a retro first-person shooter, to the showcase"
+    },
+    {
+      "hash": "1b291fe",
+      "date": "2026-10-27T10:17:16+00:00",
+      "subject": "Use relative paths in the showcase build so it can be hosted from any folder"
+    },
+    {
+      "hash": "e196fba",
+      "date": "2026-10-27T10:15:28+00:00",
+      "subject": "Add Blocks, a falling-block puzzle game, to the showcase"
+    },
+    {
+      "hash": "b20ef17",
+      "date": "2026-10-27T10:13:14+00:00",
+      "subject": "Add three showcase sites: immersive 3D, editorial motion, physics playground"
+    },
+    {
+      "hash": "6751ce8",
+      "date": "2026-10-27T10:02:44+00:00",
+      "subject": "Add animated test website (three.js, GSAP, Lenis, Vite)"
+    },
+    {
+      "hash": "d4a739c",
+      "date": "2026-02-20T10:25:10+00:00",
+      "subject": "Initial commit"
+    }
+  ],
+  "machine": {
+    "os": "Ubuntu 24.04.5 LTS",
+    "cpu": "4 × Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "memoryGb": 15.7,
+    "memoryFreeGb": 15,
+    "diskUsedGb": 9.9,
+    "diskSizeGb": 252,
+    "uptimeMin": 12,
+    "load": [
+      0.27,
+      0.33,
+      0.28
+    ]
+  },
+  "tools": {
+    "node": "v22.22.0",
+    "python": "Python 3.13.17",
+    "dotnet": "10.0.113",
+    "powershell": "7.6.9",
+    "nginx": "nginx version: nginx/1.24.0 (Ubuntu)",
+    "docker": "Docker version 29.9.2, build a82e528",
+    "git": "git version 2.43.0"
+  }
+}

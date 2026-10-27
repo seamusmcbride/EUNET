@@ -14,6 +14,7 @@ export default defineConfig({
         playful: resolve(import.meta.dirname, 'playful/index.html'),
         blocks: resolve(import.meta.dirname, 'blocks/index.html'),
         bunker: resolve(import.meta.dirname, 'bunker/index.html'),
+        dashboard: resolve(import.meta.dirname, 'dashboard/index.html'),
       },
     },
   },

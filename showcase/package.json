@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "node scripts/status.mjs && vite build",
+    "preview": "vite preview"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +19,6 @@
     "lenis": "^1.3.27",
     "matter-js": "^0.20.0",
     "three": "^0.186.1"
-  }
+  },
+  "type": "module"
 }
